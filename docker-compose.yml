@@ -1,0 +1,23 @@
+services:
+  db_butik:
+    image: postgres:16
+    container_name: kontainer_butik_db
+    environment:  
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin123
+      POSTGRES_DB: db_butik
+    ports: 
+      - "5432:5432"
+    volumes:
+      - "./data_db:/var/lib/postgresql/data"
+
+  db_dashboard:
+    image: dpage/pgadmin4
+    container_name: kontainer_butik_dashboard_db
+    environment:
+      PGADMIN_DEFAULT_EMAIL: user@belajar.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    ports:
+      - "5050:80"
+    volumes:
+      - ./data_pgadmin:/var/lib/pgadmin
