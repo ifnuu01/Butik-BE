@@ -1,6 +1,7 @@
 package infrastructure
 
 import (
+	"butik/internal/domain"
 	"fmt"
 	"log"
 
@@ -22,6 +23,10 @@ func SetupDB() *gorm.DB {
 	if err != nil {
 		log.Fatal("Failed to connect to database:", err)
 	}
+
+	db.AutoMigrate(
+		&domain.User{},
+	)
 
 	log.Println("Database connection established")
 	return db
