@@ -9,8 +9,19 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+const (
+	loginPath        = "/login"
+	refreshTokenPath = "/refresh-token"
+)
+
 type userHandler struct {
 	Usecase usecase.UserUsecase
+}
+
+func RegisterUserRoutes(e *echo.Echo, userUsecase usecase.UserUsecase) {
+	handler := &userHandler{Usecase: userUsecase}
+	e.POST(loginPath, handler.Login)
+	e.POST(refreshTokenPath, handler.RefreshToken)
 }
 
 func (h *userHandler) Login(c echo.Context) error {

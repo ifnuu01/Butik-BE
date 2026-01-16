@@ -1,0 +1,78 @@
+package repository
+
+import (
+	"butik/internal/domain"
+	"errors"
+
+	"gorm.io/gorm"
+)
+
+type CategoryRepo interface {
+	CreateCategory(name string) (*domain.Category, error)
+	GetAllCategories() ([]domain.Category, error)
+	GetCategoryByID(id uint) (*domain.Category, error)
+	UpdateCategory(id uint, name string) (*domain.Category, error)
+	DeleteCategory(id uint) error
+}
+
+type categoryRepo struct {
+	db *gorm.DB
+}
+
+func NewCategoryRepo(db *gorm.DB) CategoryRepo {
+	return &categoryRepo{db: db}
+}
+
+func (r *categoryRepo) CreateCategory(name string) (*domain.Category, error) {
+	category := &domain.Category{
+		Name: name,
+	}
+	result := r.db.Create(category)
+	if result.Error != nil {
+		return nil, errors.New("failed to create category")
+	}
+	return category, nil
+}
+
+func (r *categoryRepo) GetAllCategories() ([]domain.Category, error) {
+	var categories []domain.Category
+	result := r.db.Find(&categories)
+	if result.Error != nil {
+		return nil, errors.New("failed to get categories")
+	}
+	return categories, nil
+}
+
+func (r *categoryRepo) GetCategoryByID(id uint) (*domain.Category, error) {
+	category := &domain.Category{}
+	result := r.db.First(category, id)
+	if result.Error != nil {
+		return nil, errors.New("category not found")
+	}
+	return category, nil
+}
+
+func (r *categoryRepo) UpdateCategory(id uint, name string) (*domain.Category, error) {
+	category, err := r.GetCategoryByID(id)
+	if err != nil {
+		return nil, err
+	}
+	category.Name = name
+	result := r.db.Save(category)
+	if result.Error != nil {
+		return nil, errors.New("failed to update category")
+	}
+	return category, nil
+}
+
+func (r *categoryRepo) DeleteCategory(id uint) error {
+	category, err := r.GetCategoryByID(id)
+	if err != nil {
+		return err
+	}
+	result := r.db.Delete(category)
+	if result.Error != nil {
+		return errors.New("failed to delete category")
+	}
+	return nil
+}

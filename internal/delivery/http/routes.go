@@ -11,8 +11,10 @@ import (
 func RegisterRoutes(e *echo.Echo, db *gorm.DB) {
 	userRepo := repository.NewUserRepo(db)
 	userUsecase := usecase.NewUserUsecase(userRepo)
-	userHandler := &userHandler{Usecase: userUsecase}
 
-	e.POST("/login", userHandler.Login)
-	e.POST("/refresh-token", userHandler.RefreshToken)
+	categoryRepo := repository.NewCategoryRepo(db)
+	categoryUsecase := usecase.NewCategoryUsecase(categoryRepo)
+
+	RegisterUserRoutes(e, userUsecase)
+	RegisterCategoryRoutes(e, categoryUsecase)
 }
