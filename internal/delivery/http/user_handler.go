@@ -32,7 +32,7 @@ func (h *userHandler) Login(c echo.Context) error {
 	}
 
 	if err := c.Validate(&req); err != nil {
-		return utils.ValidaionErrorResponse(c, err)
+		return utils.ValidationErrorResponse(c, err)
 	}
 
 	res, err := h.Usecase.Login(req.Username, req.Password)
@@ -51,7 +51,7 @@ func (h *userHandler) RefreshToken(c echo.Context) error {
 	}
 
 	if err := c.Validate(&req); err != nil {
-		return utils.ValidaionErrorResponse(c, err)
+		return utils.ValidationErrorResponse(c, err)
 	}
 
 	res, err := h.Usecase.RefreshToken(req.RefreshToken)

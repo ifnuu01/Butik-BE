@@ -27,6 +27,9 @@ func SetupDB() *gorm.DB {
 	db.AutoMigrate(
 		&domain.User{},
 		&domain.Category{},
+		&domain.Product{},
+		&domain.Order{},
+		&domain.OrderItem{},
 	)
 
 	log.Println("Database connection established")

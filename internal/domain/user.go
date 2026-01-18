@@ -10,8 +10,8 @@ type User struct {
 }
 
 type LoginRequest struct {
-	Username string `json:"username" form:"username" validate:"required"`
-	Password string `json:"password" form:"password" validate:"required"`
+	Username string `json:"username" form:"username" validate:"required,min=3,max=50"`
+	Password string `json:"password" form:"password" validate:"required,min=6,max=100"`
 }
 
 type LoginResponse struct {

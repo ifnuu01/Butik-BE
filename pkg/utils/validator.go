@@ -14,6 +14,9 @@ type CustomValidator struct {
 }
 
 func (cv *CustomValidator) Validate(i interface{}) error {
+	// Sanitize
+	SanitizeStruct(i)
+
 	if err := cv.Validator.Struct(i); err != nil {
 		validationErrors, ok := err.(validator.ValidationErrors)
 		if ok {
@@ -32,7 +35,7 @@ func (cv *CustomValidator) Validate(i interface{}) error {
 				if jsonName == "" {
 					jsonName = strings.ToLower(ve.Field())
 				}
-				errors[jsonName] = ve.Tag()
+				errors[jsonName] = formatValidationError(ve)
 			}
 			return echo.NewHTTPError(http.StatusBadRequest, map[string]interface{}{
 				"status":  400,
@@ -45,7 +48,57 @@ func (cv *CustomValidator) Validate(i interface{}) error {
 	return nil
 }
 
-func ValidaionErrorResponse(c echo.Context, err error) error {
+// SanitizeStruct trims whitespace
+func SanitizeStruct(i interface{}) {
+	val := reflect.ValueOf(i)
+	if val.Kind() == reflect.Ptr {
+		val = val.Elem()
+	}
+
+	if val.Kind() != reflect.Struct {
+		return
+	}
+
+	for j := 0; j < val.NumField(); j++ {
+		field := val.Field(j)
+		if field.Kind() == reflect.String && field.CanSet() {
+			trimmed := strings.TrimSpace(field.String())
+			field.SetString(trimmed)
+		}
+	}
+}
+
+// formatValidationError
+func formatValidationError(ve validator.FieldError) string {
+	switch ve.Tag() {
+	case "required":
+		return "field is required"
+	case "min":
+		return "minimum length is " + ve.Param()
+	case "max":
+		return "maximum length is " + ve.Param()
+	case "gt":
+		return "must be greater than " + ve.Param()
+	case "gte":
+		return "must be greater than or equal to " + ve.Param()
+	case "lt":
+		return "must be less than " + ve.Param()
+	case "lte":
+		return "must be less than or equal to " + ve.Param()
+	case "email":
+		return "must be a valid email"
+	case "numeric":
+		return "must be numeric"
+	case "alphanum":
+		return "must be alphanumeric"
+	case "oneof":
+		return "must be one of: " + ve.Param()
+	default:
+		return ve.Tag()
+	}
+}
+
+func ValidationErrorResponse(c echo.Context, err error) error {
 	if httpErr, ok := err.(*echo.HTTPError); ok {
 		return c.JSON(httpErr.Code, httpErr.Message)
 	}
