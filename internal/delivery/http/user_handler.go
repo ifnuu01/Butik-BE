@@ -5,8 +5,10 @@ import (
 	"butik/internal/usecase"
 	"butik/pkg/utils"
 	"net/http"
+	"time"
 
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 )
 
 const (
@@ -20,7 +22,20 @@ type userHandler struct {
 
 func RegisterUserRoutes(e *echo.Echo, userUsecase usecase.UserUsecase) {
 	handler := &userHandler{Usecase: userUsecase}
-	e.POST(loginPath, handler.Login)
+
+	store := middleware.NewRateLimiterMemoryStoreWithConfig(middleware.RateLimiterMemoryStoreConfig{
+		Rate:      5,
+		Burst:     5,
+		ExpiresIn: 1 * time.Minute,
+	})
+	loginLimiter := middleware.RateLimiterWithConfig(middleware.RateLimiterConfig{
+		Store: store,
+		IdentifierExtractor: func(c echo.Context) (string, error) {
+			return c.RealIP(), nil
+		},
+	})
+
+	e.POST(loginPath, handler.Login, loginLimiter)
 	e.POST(refreshTokenPath, handler.RefreshToken)
 }
 
