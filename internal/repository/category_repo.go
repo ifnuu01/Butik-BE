@@ -9,7 +9,7 @@ import (
 
 type CategoryRepo interface {
 	CreateCategory(name string) (*domain.Category, error)
-	GetAllCategories() ([]domain.Category, error)
+	GetAllCategories(offset, limit int) ([]domain.Category, int, error)
 	GetCategoryByID(id uint) (*domain.Category, error)
 	UpdateCategory(id uint, name string) (*domain.Category, error)
 	DeleteCategory(id uint) error
@@ -34,13 +34,19 @@ func (r *categoryRepo) CreateCategory(name string) (*domain.Category, error) {
 	return category, nil
 }
 
-func (r *categoryRepo) GetAllCategories() ([]domain.Category, error) {
+func (r *categoryRepo) GetAllCategories(offset, limit int) ([]domain.Category, int, error) {
 	var categories []domain.Category
-	result := r.db.Find(&categories)
-	if result.Error != nil {
-		return nil, errors.New("failed to get categories")
+	var total int64
+
+	if err := r.db.Model(&domain.Category{}).Count(&total).Error; err != nil {
+		return nil, 0, errors.New("failed to count categories")
 	}
-	return categories, nil
+
+	if err := r.db.Order("created_at DESC").Offset(offset).Limit(limit).Find(&categories).Error; err != nil {
+		return nil, 0, errors.New("failed to retrieve categories")
+	}
+
+	return categories, int(total), nil
 }
 
 func (r *categoryRepo) GetCategoryByID(id uint) (*domain.Category, error) {

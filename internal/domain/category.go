@@ -15,7 +15,7 @@ type CategoryResponse struct {
 }
 
 type CreateCategoryRequest struct {
-	Name string `json:"name" form:"name" validate:"required"`
+	Name string `json:"name" form:"name" validate:"required,min=2,max=100"`
 }
 
 type CreateCategoryResponse struct {
@@ -24,7 +24,7 @@ type CreateCategoryResponse struct {
 }
 
 type UpdateCategoryRequest struct {
-	Name string `json:"name" form:"name" validate:"required"`
+	Name string `json:"name" form:"name" validate:"required,min=2,max=100"`
 }
 
 type UpdateCategoryResponse struct {

@@ -41,7 +41,7 @@ func (h *categoryHandler) CreateCategory(c echo.Context) error {
 	}
 
 	if err := c.Validate(&req); err != nil {
-		return utils.ValidaionErrorResponse(c, err)
+		return utils.ValidationErrorResponse(c, err)
 	}
 
 	res, err := h.Usecase.CreateCategory(req.Name)
@@ -53,11 +53,33 @@ func (h *categoryHandler) CreateCategory(c echo.Context) error {
 }
 
 func (h *categoryHandler) GetAllCategories(c echo.Context) error {
-	res, err := h.Usecase.GetAllCategories()
+	pageStr := c.QueryParam("page")
+	limitStr := c.QueryParam("limit")
+
+	page := 1
+	limit := 10
+
+	if p, err := strconv.Atoi(pageStr); err == nil && p > 0 {
+		page = p
+	}
+
+	if l, err := strconv.Atoi(limitStr); err == nil && l > 0 {
+		limit = l
+	}
+
+	offset := (page - 1) * limit
+	categories, total, err := h.Usecase.GetAllCategories(offset, limit)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
-	return c.JSON(http.StatusOK, res)
+
+	response := map[string]interface{}{
+		"data":  categories,
+		"page":  page,
+		"limit": limit,
+		"total": total,
+	}
+	return c.JSON(http.StatusOK, response)
 }
 
 func (h *categoryHandler) GetCategoryByID(c echo.Context) error {
@@ -87,7 +109,7 @@ func (h *categoryHandler) UpdateCategory(c echo.Context) error {
 	}
 
 	if err := c.Validate(&req); err != nil {
-		return utils.ValidaionErrorResponse(c, err)
+		return utils.ValidationErrorResponse(c, err)
 	}
 
 	res, err := h.Usecase.UpdateCategory(uint(id), req.Name)

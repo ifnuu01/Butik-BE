@@ -9,7 +9,7 @@ import (
 
 type CategoryUsecase interface {
 	CreateCategory(name string) (*domain.CreateCategoryResponse, error)
-	GetAllCategories() ([]*domain.CategoryResponse, error)
+	GetAllCategories(offset, limit int) ([]*domain.CategoryResponse, int, error)
 	GetCategoryByID(id uint) (*domain.CategoryResponse, error)
 	UpdateCategory(id uint, name string) (*domain.UpdateCategoryResponse, error)
 	DeleteCategory(id uint) (*domain.DeleteCategoryResponse, error)
@@ -37,14 +37,14 @@ func (u *categoryUsecase) CreateCategory(name string) (*domain.CreateCategoryRes
 	}, nil
 }
 
-func (u *categoryUsecase) GetAllCategories() ([]*domain.CategoryResponse, error) {
-	categories, err := u.categoryRepo.GetAllCategories()
+func (u *categoryUsecase) GetAllCategories(offset, limit int) ([]*domain.CategoryResponse, int, error) {
+	categories, total, err := u.categoryRepo.GetAllCategories(offset, limit)
 	if err != nil {
-		return nil, errors.New("failed to get categories")
+		return nil, 0, errors.New("failed to get categories")
 	}
 
 	catResponses := dto.ToCategoryResponses(categories)
-	return catResponses, nil
+	return catResponses, total, nil
 }
 
 func (u *categoryUsecase) GetCategoryByID(id uint) (*domain.CategoryResponse, error) {
